@@ -8,6 +8,7 @@
 library(shiny)
 library(plotly)
 library(RMySQL)
+library(lubridate)
 
 source("myConfig.R")
 
@@ -77,7 +78,9 @@ server <- function(input, output, session) {
   
   # Query to retrieve timeseries data
   data_query <- reactive({
-    query <- paste0("SELECT datetime, ", input$data, " FROM ", input$table, " WHERE datetime BETWEEN '", input$date_range[1], "' AND '", input$date_range[2], "'")
+    query <- paste0("SELECT datetime, ", input$data, " FROM ", 
+                    input$table, " WHERE datetime BETWEEN '", 
+                    input$date_range[1], "' AND '", lubridate::as_date(input$date_range[2])+1, "'")
     print(query)
     return(dbGetQuery(conn, query))
   })
