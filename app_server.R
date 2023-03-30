@@ -1,207 +1,6 @@
-##Meter_MOD##
-# Define Meter MOD
-Group_MOD <- function(input, output, session, conn, group, date1, date2) {
-  ns <- session$ns
-  
-  observe({ 
-    print("Meter_MOD")
-    print(session$ns("")) 
-  })
-  
-  
-  energy_used <- function(table, initialdt, finaldt) {
-    print(paste("getting energy used for table",table))
-    print("getting initial energy")
-    initialQuery <- paste0("SELECT energy FROM ", table, " WHERE datetime > '", initialdt, "' ORDER BY datetime ASC LIMIT 1")
-    print(initialQuery)
-    initialEnergy <- dbGetQuery(conn, initialQuery)$energy
-    print("getting final energy")
-    finalQuery <- paste0("SELECT energy FROM ", table, " WHERE datetime < '", lubridate::as_date(finaldt)+1, "' ORDER BY datetime DESC LIMIT 1")
-    print(finalQuery)
-    finalEnergy <- dbGetQuery(conn, finalQuery)$energy
-    print(finalEnergy)
-    return((finalEnergy[1] - initialEnergy[1])/1000)
-  }
-  
-  total_energy <- reactive({
-    print("gettting total energy")
-    #print(length(tables[paste0('pzem',input$group)][[1]]))
-    req(length(tables[paste0('pzem',input$group)][[1]]) > 0)
-    total <- 0
-    for (t in tables[paste0('pzem',input$group)][[1]]) {
-      print(t)
-      total <- total + energy_used(t, input$date_range[1], input$date_range[2])[[1]]
-    }
-    total
-  })
-  output$totalEnergy <- renderText({
-    total_energy()
-  })
-  
-  groupTable <- function(group, table_num) {
-    t <- tables[paste0('pzem',group)][[1]][table_num]
-  }
-  
-  # Meter1 UI
-  output$meter1_text <- renderText({ groupTable(input$group, 1)  })
-  output$meter1_kWh <- renderUI({ energy_used(groupTable(input$group, 1), input$date_range[1], input$date_range[2])[[1]] })
-  output$meter1_percent <- renderUI({ 
-    u <- energy_used(groupTable(input$group, 1), input$date_range[1], input$date_range[2])[[1]] 
-    round(u/total_energy()*100,1)
-  })
-  output$meter1_cost <- renderUI({ 
-    u <- energy_used(groupTable(input$group, 1), input$date_range[1], input$date_range[2])[[1]] 
-    round(u*0.35,2)
-  })
-  # Meter2 UI
-  output$meter2_text <- renderText({ groupTable(input$group, 2)  })
-  output$meter2_kWh <- renderUI({ energy_used(groupTable(input$group, 2), input$date_range[1], input$date_range[2])[[1]] })
-  output$meter2_percent <- renderUI({ 
-    u <- energy_used(groupTable(input$group, 2), input$date_range[1], input$date_range[2])[[1]] 
-    round(u/total_energy()*100,1)
-  })
-  output$meter2_cost <- renderUI({ 
-    u <- energy_used(groupTable(input$group, 2), input$date_range[1], input$date_range[2])[[1]] 
-    round(u*0.35,2)
-  })
-  # Meter3 UI
-  output$meter3_text <- renderText({ groupTable(input$group, 3)  })
-  output$meter3_kWh <- renderUI({ 
-    req(groupTable(input$group, 3))
-    energy_used(groupTable(input$group, 3), input$date_range[1], input$date_range[2])[[1]] })
-  output$meter3_percent <- renderUI({ 
-    req(groupTable(input$group, 3))
-    u <- energy_used(groupTable(input$group, 3), input$date_range[1], input$date_range[2])[[1]] 
-    round(u/total_energy()*100,1)
-  })
-  output$meter3_cost <- renderUI({ 
-    req(groupTable(input$group, 3))
-    u <- energy_used(groupTable(input$group, 3), input$date_range[1], input$date_range[2])[[1]] 
-    round(u*0.35,2)
-  })
-  
-  # Disconnect from database when app is closed
-  session$onSessionEnded(function() {
-    dbDisconnect(conn)
-  })
-}
+#Breakout MODs
 
-# Define Meter MOD
-Meter_MOD <- function(input, output, session, group) {
-  ns <- session$ns
-  
-  observe({ 
-    print("Meter_MOD")
-    print(session$ns("")) 
-  })
-  
-  # Table dropdown UI
-  output$table_ui <- renderUI({
-    selectInput(ns("table"), "Table", tables[paste0('pzem', input$group)][[1]])
-  })
-  
-  # MySQL connection
-  conn <- dbConnect(MySQL(),
-                    host=config_host,
-                    user=config_user,
-                    password=config_password,
-                    dbname=config_dbname)
-  
-  # Query to retrieve timeseries data
-  data_query <- reactive({
-    query <- paste0("SELECT datetime, ", input$data, " FROM ", 
-                    input$table, " WHERE datetime BETWEEN '", 
-                    input$date_range[1], "' AND '", lubridate::as_date(input$date_range[2])+1, "'")
-    print(query)
-    return(dbGetQuery(conn, query))
-  })
-  
-  # Plotting timeseries data
-  output$plot <- renderPlotly({
-    #req(nrow(data_query) > 0 )
-    plot_ly(data_query(), x = ~datetime, y = ~get(input$data), type = 'scatter', mode = 'lines', name = input$data) %>%
-      layout(title = paste("Time Series of", input$data, "for Table:", input$table),
-             xaxis = list(title = "Datetime"),
-             yaxis = list(title = input$data))
-  })
-  
-  energy_used <- function(table, initialdt, finaldt) {
-    print(paste("getting energy used for table",table))
-    print("getting initial energy")
-    initialQuery <- paste0("SELECT energy FROM ", table, " WHERE datetime > '", initialdt, "' ORDER BY datetime ASC LIMIT 1")
-    print(initialQuery)
-    initialEnergy <- dbGetQuery(conn, initialQuery)
-    print("getting final energy")
-    finalQuery <- paste0("SELECT energy FROM ", table, " WHERE datetime < '", lubridate::as_date(finaldt)+1, "' ORDER BY datetime DESC LIMIT 1")
-    print(finalQuery)
-    finalEnergy <- dbGetQuery(conn, finalQuery)
-    print(finalEnergy)
-    return((finalEnergy[1] - initialEnergy[1])/1000)
-  }
-  
-  total_energy <- reactive({
-    print("gettting total energy")
-    #print(length(tables[paste0('pzem',input$group)][[1]]))
-    req(length(tables[paste0('pzem',input$group)][[1]]) > 0)
-    total <- 0
-    for (t in tables[paste0('pzem',input$group)][[1]]) {
-      print(t)
-      total <- total + energy_used(t, input$date_range[1], input$date_range[2])[[1]]
-    }
-    total
-  })
-  output$totalEnergy <- renderText({
-    total_energy()
-  })
-  
-  groupTable <- function(group, table_num) {
-    t <- tables[paste0('pzem',group)][[1]][table_num]
-  }
-  
-  # Meter1 UI
-  output$meter1_text <- renderText({ groupTable(input$group, 1)  })
-  output$meter1_kWh <- renderUI({ energy_used(groupTable(input$group, 1), input$date_range[1], input$date_range[2])[[1]] })
-  output$meter1_percent <- renderUI({ 
-    u <- energy_used(groupTable(input$group, 1), input$date_range[1], input$date_range[2])[[1]] 
-    round(u/total_energy()*100,1)
-  })
-  output$meter1_cost <- renderUI({ 
-    u <- energy_used(groupTable(input$group, 1), input$date_range[1], input$date_range[2])[[1]] 
-    round(u*0.35,2)
-  })
-  # Meter2 UI
-  output$meter2_text <- renderText({ groupTable(input$group, 2)  })
-  output$meter2_kWh <- renderUI({ energy_used(groupTable(input$group, 2), input$date_range[1], input$date_range[2])[[1]] })
-  output$meter2_percent <- renderUI({ 
-    u <- energy_used(groupTable(input$group, 2), input$date_range[1], input$date_range[2])[[1]] 
-    round(u/total_energy()*100,1)
-  })
-  output$meter2_cost <- renderUI({ 
-    u <- energy_used(groupTable(input$group, 2), input$date_range[1], input$date_range[2])[[1]] 
-    round(u*0.35,2)
-  })
-  # Meter3 UI
-  output$meter3_text <- renderText({ groupTable(input$group, 3)  })
-  output$meter3_kWh <- renderUI({ 
-    req(groupTable(input$group, 3))
-    energy_used(groupTable(input$group, 3), input$date_range[1], input$date_range[2])[[1]] })
-  output$meter3_percent <- renderUI({ 
-    req(groupTable(input$group, 3))
-    u <- energy_used(groupTable(input$group, 3), input$date_range[1], input$date_range[2])[[1]] 
-    round(u/total_energy()*100,1)
-  })
-  output$meter3_cost <- renderUI({ 
-    req(groupTable(input$group, 3))
-    u <- energy_used(groupTable(input$group, 3), input$date_range[1], input$date_range[2])[[1]] 
-    round(u*0.35,2)
-  })
-  
-  # Disconnect from database when app is closed
-  session$onSessionEnded(function() {
-    dbDisconnect(conn)
-  })
-}
-
+#Root MOD
 root_MOD <- function(input, output, session) {
   ns <- session$ns
   
@@ -230,8 +29,13 @@ root_MOD <- function(input, output, session) {
     paste0("SELECT energy, datetime FROM ", table, " WHERE datetime < '", 
            lubridate::as_date(finaldt)+1, "' ORDER BY datetime DESC LIMIT 1")
   }
+  maxQuery <- function(table, initialdt, finaldt){
+    paste0("SELECT MAX(energy) FROM ", 
+           table, " WHERE datetime BETWEEN '", 
+           initialdt, "' AND '", lubridate::as_date(finaldt)+1, "'")
+  }
   liveQuery <- function(table, finaldt){
-    paste0("SELECT power, datetime FROM ", table, " WHERE datetime < '", 
+    paste0("SELECT datetime, voltage, current, power, energy FROM ", table, " WHERE datetime < '", 
            lubridate::as_date(finaldt)+1, "' ORDER BY datetime DESC LIMIT 1")
   }
     
@@ -241,10 +45,17 @@ root_MOD <- function(input, output, session) {
     meas <- c()
     cost <- c()
     for (t in tables[paste0('pzem',input$group)][[1]]) {
-      i <- dbGetQuery(conn, initialQuery(t,input$date_range[1]))
-      f <- dbGetQuery(conn, finalQuery(t,input$date_range[2]))
-      meas <- c(meas, f$energy - i$energy)
-      days <- c(days, as.numeric(lubridate::as_date(f$datetime)-lubridate::as_date(i$datetime)) )
+      print(maxQuery(t,input$date_range[1],input$date_range[2]) )
+      print(finalQuery(t,input$date_range[2]))
+      initial <- dbGetQuery(conn, initialQuery(t,input$date_range[1]))
+      max <- dbGetQuery(conn, maxQuery(t,input$date_range[1],input$date_range[2]) )
+      final <- dbGetQuery(conn, finalQuery(t,input$date_range[2]))
+      if( final$energy < max$`MAX(energy)` ){
+        meas <- c(meas, max$`MAX(energy)` - initial$energy + final$energy)
+      }else{
+        meas <- c(meas, final$energy - initial$energy) 
+      }
+      days <- c(days, as.numeric(lubridate::as_date(final$datetime)-lubridate::as_date(initial$datetime)) )
     }
     Data_Frame <- data.frame (
       Label = tables[paste0('pzem',input$group)],
@@ -257,16 +68,25 @@ root_MOD <- function(input, output, session) {
   live_list <- reactive({
     livetimer()
     req(length(tables[paste0('pzem',input$group)][[1]]) > 0)
-    power <- c()
     datetime <- c()
+    voltage <- c()
+    current <- c()
+    power <- c()
+    energy <- c()
     for (t in tables[paste0('pzem',input$group)][[1]]) {
       live <- dbGetQuery(conn, liveQuery(t,Sys.Date()))
-      power <- c(power, live$power)
       datetime <- c(datetime, live$datetime)
+      voltage <- c(voltage, live$voltage)
+      current <- c(current, live$current)
+      power <- c(power, live$power)
+      energy <- c(energy, live$energy)
     }
     Data_Frame <- data.frame (
       Label = tables[paste0('pzem',input$group)],
+      Voltage = voltage,
+      Current = current,
       Power = power/1000,
+      Energy = energy/1000,
       LastMeasurement = datetime
     )
   })

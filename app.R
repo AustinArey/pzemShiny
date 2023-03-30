@@ -16,8 +16,6 @@ library(bslib)
 library(shinycssloaders)
 library(DT)
 
-source("myConfig.R")
-
 source('app_server.R')
 source('app_ui.R')
 source('router.R')
@@ -52,5 +50,5 @@ server <- function(input, output, session) {
 }
 
 # Run the app
-shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server, options = list(host = '0.0.0.0', port = 8000))
 

@@ -27,7 +27,8 @@ Group_UI <- function(id) {
         column(4,h4("Number of days selected:")),
         column(2,verbatimTextOutput(ns("daysSelected"))),
       ),fluidRow(
-        column(6,div(id="datatable",class="table",DTOutput(ns('tbl')), 
+        column(6,div(id="datatable",class="table",
+                     DTOutput(ns('tbl')) %>% withSpinner(color="#0dc5c1"), 
                      style = "font-size:80%;color:white;background-color:lightgrey;"))
       )
   )
@@ -66,7 +67,7 @@ root_ui <- function(id) {
   ns <- NS(id)
   div( id="root",class="root",
        fluidRow(
-         column(6, h1("Electrical Meter Shiny App v0.1"))),
+         column(6, h3("Electrical Meter Shiny App v0.1"))),
        fluidRow(
          column(3,selectInput(ns("group"), "Group", group_list)),
          column(3,dateRangeInput(ns("date_range"), "Date Range", start = Sys.Date() - 30, end = Sys.Date())),
