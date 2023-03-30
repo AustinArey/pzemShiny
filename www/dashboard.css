@@ -1,0 +1,224 @@
+@font-face {
+    font-family: "Roboto";
+    src: url("Roboto-Regular.ttf") format('truetype');
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: sans-serif;
+    src: url("Roboto-Regular.ttf") format('truetype');
+    font-weight: 400;
+}
+
+    
+body {
+    font: 20px 'Roboto', Arial, sans-serif;
+}     
+
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}
+.plotly {
+  max-height: inherit;
+}
+/* plotly graphs */
+.col-sm-2{
+  padding-left: 0;
+  padding-right: 0;
+}
+.col-sm-6{
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* parent with machine info for CC */
+.CC {
+  text-align: center;
+  font: 40px 'Roboto', Arial, sans-serif;
+}
+.pressure-grid{
+  display: grid;
+  grid-template-columns: 6fr 5fr 5fr 5fr 5fr;
+  gap: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.pressure-grid-small{
+  display: grid;
+  grid-template-columns: 5fr 6fr 5fr 5fr 5fr;
+  gap: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.hud {
+  text-align: center;
+  font: 16px 'Roboto', Arial, sans-serif; 
+  border-style: solid solid solid solid;
+  margin-left: 15px;
+  margin-right: 5px;
+  padding: 10px;
+  
+}
+.hud-title{
+  font: 16px 'Roboto', Arial, sans-serif; 
+  padding-top: 20px;
+}
+.hud-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  /*background-color: #2196F3;*/
+  /*padding: 40px;*/
+  /*padding-left: 20px;*/
+  /*padding-right: 20px; */
+  /*padding-top: 20px; */
+  margin-left: 10px;
+  margin-right: 10px;
+  text-align: center;
+  font: 13px 'Roboto', Arial, sans-serif;
+}
+.hud-group{
+  padding-top: 5px;
+}
+.hud-grid-1{
+  grid-column-start: 1;
+  grid-column-end: 2;
+}
+.hud-grid-2{
+  grid-column-start: 2;
+  grid-column-end: 3;
+}
+/* parent with machine info for CC */
+.link {
+  text-align: center;
+  font: 25px 'Roboto', Arial, sans-serif;
+}
+.logo {
+  text-align: center;
+  font: 25px 'Roboto', Arial, sans-serif;
+  padding-top: 6px;
+  /*width: 200px;*/
+  
+}
+.header {
+  display: grid;
+  /*grid-template-columns: 150px 225px 700px 200px 225px;*/
+  grid-template-columns: 2fr 3fr 10fr 2fr 3fr;  
+  text-align: center;
+  font: 40px 'Roboto', Arial, sans-serif;
+  
+}
+.CC-info {
+  text-align: center;
+  padding-top: 6px;
+  border-style: none none none solid;
+  font: 40px 'Roboto', Arial, sans-serif;
+}
+.CC-tainfo{
+  display: grid;
+  grid-template-columns: 350px 350px 350px 350px 350px;
+  gap: 10px;
+  /*background-color: #2196F3;*/
+  padding: 10px;
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+  font: 27px 'Roboto', Arial, sans-serif;
+  border-style: none none solid none;
+}
+.dropdowns{
+  text-align: left;
+  font: 15px 'Roboto', Arial, sans-serif;
+  gap: 10px;
+  padding: 0x;
+  padding-left: 5px;
+  padding-right: 0;
+}
+.form-control{
+ height: 35px; 
+}
+/* parent with machine info for CC */
+
+
+/* grid layout for CC- polycoldcharts */
+.CC-pc{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+.polycold {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  padding: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.polycolddefrost {
+  grid-column-start: 2;
+  grid-column-end: 4;
+  padding: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.polycolddefrosttemp {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  padding: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.polycolddefrostduration {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  padding: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* grid layout for CC */
+.CC-grid {
+  display: grid;
+  /*grid-template-columns: 1fr 1fr 1fr;*/
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  /*background-color: #2196F3;*/
+  padding: 0;
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+  font: 20px 'Roboto', Arial, sans-serif;
+}
+.cc-col1 {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  padding-left: 0;
+  padding-right: 0;
+}
+.cc-col2 {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  padding-left: 0;
+  padding-right: 0;
+  
+}
+.cc-col3 {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  padding-left: 0;
+  padding-right: 0;
+}
+.table {
+  text-align: left;
+  font: 12px 'Roboto', Arial, sans-serif;
+  color: grey;
+  gap: 10px;
+  background-color: lightgrey;
+  padding: 10px;
+  padding-left: 10px;
+  padding-right: 0;
+}
+
+
