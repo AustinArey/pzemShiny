@@ -20,6 +20,7 @@ library(shinymanager)
 source('app_server.R')
 source('app_ui.R')
 source('router.R')
+source('myConfig.R')
 
 
 #Main User Interface
