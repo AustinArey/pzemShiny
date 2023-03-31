@@ -29,7 +29,7 @@ Group_UI <- function(id) {
       ),fluidRow(
         column(6,div(id="datatable",class="table",
                      DTOutput(ns('tbl')) %>% withSpinner(color="#0dc5c1"), 
-                     style = "font-size:80%;color:white;background-color:lightgrey;"))
+                     style = "font-size:100%;color:white;background-color:lightgrey;"))
       )
   )
 }
@@ -40,7 +40,7 @@ LivePower_UI <- function(id) {
   div(id="live",
       fluidRow(
         column(6,div(id="datatable",class="table",DTOutput(ns('liveTable')), 
-                     style = "font-size:80%;color:white;background-color:lightgrey;"))
+                     style = "font-size:100%;color:white;background-color:lightgrey;"))
       )
   )
 }

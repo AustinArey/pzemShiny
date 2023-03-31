@@ -1,10 +1,3 @@
-
-  # MySQL connection
-  # mysql_host = 'deafdogranch.ddns.net'; '10.0.0.50'
-  # mysql_database = 'schema1'
-  # mysql_user = 'terrypi'; 'pi'
-  # mysql_pw = 'PaintRobot1!'; 'Repair1'
-
 library(shiny)
 library(plotly)
 library(RMySQL)
