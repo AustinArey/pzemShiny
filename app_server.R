@@ -38,6 +38,9 @@ root_MOD <- function(input, output, session) {
     paste0("SELECT datetime, voltage, current, power, energy FROM ", table, " WHERE datetime < '", 
            lubridate::as_date(finaldt)+1, "' ORDER BY datetime DESC LIMIT 1")
   }
+  
+  costPerKwh <- reactive({ round(input$billCost/input$billKwh,2) })
+  output$costPerKwh <- renderText({ paste0("$", costPerKwh() ) })
     
   meter_list <- reactive({
     req(length(tables[paste0('pzem',input$group)][[1]]) > 0)
@@ -61,7 +64,7 @@ root_MOD <- function(input, output, session) {
       Label = tables[paste0('pzem',input$group)],
       kWh = meas/1000,
       Days = days,
-      CostEst = round(meas/1000*days_selected()/days*0.35, 2)
+      CostEst = round(meas/1000*days_selected()/days*costPerKwh(), 2)
     )
   })
   
@@ -92,9 +95,9 @@ root_MOD <- function(input, output, session) {
   })
   
   total_energy <- reactive({ sum(unlist(meter_list()['kWh']))  })
-  days_selected <- reactive({ lubridate::as_date(input$date_range[2])-lubridate::as_date(input$date_range[1]) })
+  days_selected <- reactive({ 1 + lubridate::as_date(input$date_range[2])-lubridate::as_date(input$date_range[1]) })
   
-  output$totalEnergy <- renderText({ total_energy() })
+  output$totalEnergy <- renderText({ paste0(total_energy(),"kWh") })
   output$daysSelected <- renderText({ days_selected() })
   
   groupTable <- function(group, table_num) { tables[paste0('pzem',group)][[1]][table_num] }

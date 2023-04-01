@@ -21,11 +21,20 @@ Group_UI <- function(id) {
   ns <- NS(id)
   div(id="group",
       fluidRow(
-        column(4,h4("Total kWh used on all meters in group:")),
-        column(2,verbatimTextOutput(ns("totalEnergy"))),
+        column(2,h4("Group kWh measured:")),
+        column(2,textOutput(ns("totalEnergy"))),
       ),fluidRow(
-        column(4,h4("Number of days selected:")),
-        column(2,verbatimTextOutput(ns("daysSelected"))),
+        column(2,h4("Number of days selected:")),
+        column(2,textOutput(ns("daysSelected"))),
+      ),fluidRow(
+        #column(4,h4("Enter Bill total cost")),
+        column(2,numericInput(ns("billCost"),label="Bill Total $", value=130.86)),
+      #),fluidRow(
+        #column(4,h4("Enter Bill total kWh")),
+        column(2,numericInput(ns("billKwh"),label="Bill Total kWh", value=396 )),
+      ),fluidRow(
+        column(2,h4("Calculated Cost per Kwh")),
+        column(2,textOutput(ns("costPerKwh"))),
       ),fluidRow(
         column(6,div(id="datatable",class="table",
                      DTOutput(ns('tbl')) %>% withSpinner(color="#0dc5c1"), 
@@ -35,7 +44,7 @@ Group_UI <- function(id) {
 }
 
 # Live UI #
-LivePower_UI <- function(id) { 
+LiveStats_UI <- function(id) { 
   ns <- NS(id)
   div(id="live",
       fluidRow(
@@ -77,7 +86,7 @@ root_ui <- function(id) {
                    #tabPanel("Run History", runhist_ui(id)), #Run History tabsetPanel
                    #tabPanel("Terry's Meters",tags$body(a(href="/?group=terry",class="link"))),
                    tabPanel("Group Analysis", Group_UI(id)), 
-                   tabPanel("Live Power", LivePower_UI(id)),
+                   tabPanel("Live Stats", LiveStats_UI(id)),
                    tabPanel("Meter Charting", Meter_UI(id)),
        ),
   )#div root
