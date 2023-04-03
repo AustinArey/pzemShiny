@@ -86,11 +86,11 @@ root_MOD <- function(input, output, session) {
     }
     Data_Frame <- data.frame (
       Label = tables[paste0('pzem',input$group)],
-      Voltage = voltage,
+      LastMeasurement = datetime,
       Current = current,
       Power = power/1000,
       Energy = energy/1000,
-      LastMeasurement = datetime
+      Voltage = voltage
     )
   })
   

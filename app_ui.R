@@ -27,13 +27,10 @@ Group_UI <- function(id) {
         column(2,h4("Number of days selected:")),
         column(2,textOutput(ns("daysSelected"))),
       ),fluidRow(
-        #column(4,h4("Enter Bill total cost")),
         column(2,numericInput(ns("billCost"),label="Bill Total $", value=130.86)),
-      #),fluidRow(
-        #column(4,h4("Enter Bill total kWh")),
         column(2,numericInput(ns("billKwh"),label="Bill Total kWh", value=396 )),
       ),fluidRow(
-        column(2,h4("Calculated Cost per Kwh")),
+        column(2,h4("= $/Kwh")),
         column(2,textOutput(ns("costPerKwh"))),
       ),fluidRow(
         column(6,div(id="datatable",class="table",
