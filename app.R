@@ -15,7 +15,6 @@ source('app_ui.R')
 source('router.R')
 source('myConfig.R')
 
-
 #Main User Interface
 ui <- function(req) { 
   fluidPage( theme = shinytheme("darkly"),

@@ -155,7 +155,7 @@ root_MOD <- function(input, output, session) {
     p <- p %>% plotly_dark() %>% 
       layout(xaxis=list(title=list(text='Datetime'),
                             type="date", 
-                            tickformat="%Y-%m-%d %H:%M:%S",
+                            #tickformat="%Y-%m-%d %H:%M:%S",
                             tickangle = -90,
                             font = list(family = "sans serif",size = 8,color = 'white'),
                             gridcolor = toRGB("gray50"),gridwidth = 1,
