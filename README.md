@@ -1,0 +1,2 @@
+# PzemShiny App
+Frontend visualizer written in R using Shiny framework for displaying info from PZEM004T gathered with Raspberry Pi's running my backend code https://github.com/FailingSquare60/pzemBackend
