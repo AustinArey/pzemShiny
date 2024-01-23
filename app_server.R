@@ -24,27 +24,27 @@ root_MOD <- function(input, output, session) {
   ## GROUP ##
   initialQuery <- function(table, initialdt) {
     paste0(
-      "SELECT energy, datetime FROM ", table, " WHERE datetime > '",
-      initialdt, "' ORDER BY datetime ASC LIMIT 1"
+      "SELECT energy, date_time FROM ", table, " WHERE date_time > '",
+      initialdt, "' ORDER BY date_time ASC LIMIT 1"
     )
   }
   finalQuery <- function(table, finaldt) {
     paste0(
-      "SELECT energy, datetime FROM ", table, " WHERE datetime < '",
-      lubridate::as_date(finaldt) + 1, "' ORDER BY datetime DESC LIMIT 1"
+      "SELECT energy, date_time FROM ", table, " WHERE date_time < '",
+      lubridate::as_date(finaldt) + 1, "' ORDER BY date_time DESC LIMIT 1"
     )
   }
   maxQuery <- function(table, initialdt, finaldt) {
     paste0(
       "SELECT MAX(energy) FROM ",
-      table, " WHERE datetime BETWEEN '",
+      table, " WHERE date_time BETWEEN '",
       initialdt, "' AND '", lubridate::as_date(finaldt) + 1, "'"
     )
   }
   liveQuery <- function(table, finaldt) {
     paste0(
-      "SELECT datetime, voltage, current, power, energy FROM ", table, " WHERE datetime < '",
-      lubridate::as_date(finaldt) + 1, "' ORDER BY datetime DESC LIMIT 1"
+      "SELECT date_time, voltage, current, power, energy FROM ", table, " WHERE date_time < '",
+      lubridate::as_date(finaldt) + 1, "' ORDER BY date_time DESC LIMIT 1"
     )
   }
 
@@ -71,7 +71,7 @@ root_MOD <- function(input, output, session) {
       } else {
         meas <- c(meas, final$energy - initial$energy)
       }
-      days <- c(days, as.numeric(lubridate::as_date(final$datetime) - lubridate::as_date(initial$datetime)))
+      days <- c(days, as.numeric(lubridate::as_date(final$date_time) - lubridate::as_date(initial$date_time)))
     }
     Data_Frame <- data.frame(
       Label = tables[input$group],
@@ -84,14 +84,14 @@ root_MOD <- function(input, output, session) {
   live_list <- reactive({
     livetimer()
     req(length(tables[input$group][[1]]) > 0)
-    datetime <- c()
+    date_time <- c()
     voltage <- c()
     current <- c()
     power <- c()
     energy <- c()
     for (t in tables[input$group][[1]]) {
       live <- dbGetQuery(conn, liveQuery(t, Sys.Date()))
-      datetime <- c(datetime, live$datetime)
+      date_time <- c(date_time, live$date_time)
       voltage <- c(voltage, live$voltage)
       current <- c(current, live$current)
       power <- c(power, live$power)
@@ -99,7 +99,7 @@ root_MOD <- function(input, output, session) {
     }
     Data_Frame <- data.frame(
       Label = tables[input$group],
-      LastMeasurement = datetime,
+      LastMeasurement = date_time,
       Current = current,
       Power = power / 1000,
       Energy = energy / 1000,
@@ -163,8 +163,8 @@ root_MOD <- function(input, output, session) {
   data_query <- reactive({
     req(input$table != "")
     query <- paste0(
-      "SELECT datetime, ", input$data, " FROM ",
-      input$table, " WHERE datetime BETWEEN '",
+      "SELECT date_time, ", input$data, " FROM ",
+      input$table, " WHERE date_time BETWEEN '",
       input$date_range[1], "' AND '", lubridate::as_date(input$date_range[2]) + 1, "'"
     )
     print(query)
@@ -175,7 +175,7 @@ root_MOD <- function(input, output, session) {
   output$plot <- renderPlotly({
     # req(nrow(data_query) > 0 )
     p <- plot_ly(data_query(),
-      x = ~datetime, y = ~ get(input$data),
+      x = ~date_time, y = ~ get(input$data),
       type = "scatter", mode = "lines", name = input$data
     ) %>%
       layout(
