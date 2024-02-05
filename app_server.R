@@ -7,6 +7,11 @@ root_MOD <- function(input, output, session) {
   observe({
     print("root_MOD")
     print(session$ns(""))
+    # Extract IP address
+    ip <- session$clientData$url_hostname
+    # Log IP address with timestamp
+    log_entry <- paste(Sys.time(), " - IP Address:", ip, "\n")
+    print(log_entry)
   })
 
   # Set base timer interval for dashboard refresh interval
@@ -71,12 +76,12 @@ root_MOD <- function(input, output, session) {
       } else {
         meas <- c(meas, final$energy - initial$energy)
       }
-      days <- c(days, as.numeric(lubridate::as_date(final$date_time) - lubridate::as_date(initial$date_time)))
+      days <- c(days, as.numeric(difftime(as.POSIXct(final$date_time), as.POSIXct(initial$date_time), units = "days")))
     }
     Data_Frame <- data.frame(
       Label = tables[input$group],
       kWh = meas / 1000,
-      Days = days,
+      "Days Meas" = round(days, 2),
       CostEst = round(meas / 1000 * days_selected() / days * costPerKwh(), 2)
     )
   })
