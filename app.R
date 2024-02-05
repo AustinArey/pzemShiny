@@ -8,47 +8,50 @@ library(shinyWidgets)
 library(bslib)
 library(shinycssloaders)
 library(DT)
-library(shinymanager)
+# library(shinymanager)
 
-source('app_server.R')
-source('app_ui.R')
-source('router.R')
-source('myConfig.R')
+source("app_server.R")
+source("app_ui.R")
+source("router.R")
+source("myConfig.R")
 
-#Main User Interface
-ui <- function(req) { 
-  fluidPage( theme = shinytheme("darkly"),
-             # Script
-             #tags$script(HTML()),
-             #Custom CSS
-             tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css")),
-             shinyjs::useShinyjs(),
-             #Page Header
-             
-             routerUI('router') #replacing shiny.router working
+# Main User Interface
+ui <- function(req) {
+  fluidPage(
+    theme = shinytheme("darkly"),
+    # Script
+    # tags$script(HTML()),
+    # Custom CSS
+    tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css")),
+    shinyjs::useShinyjs(),
+    # Page Header
+
+    routerUI("router") # replacing shiny.router working
   )
 }
 # Wrap your UI with secure_app
-ui <- secure_app(ui)
+# ui <- secure_app(ui)
 
 server <- function(input, output, session) {
-  #check_credentials returns a function to authenticate users
-  res_auth <- secure_server(
-    check_credentials = check_credentials(credentials)
-  )
-  #in place of shiny.router
-  query <- reactive({ parseQueryString(session$clientData$url_search) })
-  
-  observe({ print("server")
-    print(input) 
-    })
-  
-  #Set session to auto reconnect to server if connection is lost
+  # check_credentials returns a function to authenticate users
+  # res_auth <- secure_server(
+  #   check_credentials = check_credentials(credentials)
+  # )
+  # in place of shiny.router
+  query <- reactive({
+    parseQueryString(session$clientData$url_search)
+  })
+
+  observe({
+    print("server")
+    print(input)
+  })
+
+  # Set session to auto reconnect to server if connection is lost
   session$allowReconnect("force")
-  
-  callModule(routerMOD,'router',query=query) #working
+
+  callModule(routerMOD, "router", query = query) # working
 }
 
 # Run the app
-shinyApp(ui = ui, server = server, options = list(host = '0.0.0.0', port = 8000))
-
+shinyApp(ui = ui, server = server, options = list(host = "0.0.0.0", port = 8000))
