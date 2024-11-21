@@ -50,7 +50,7 @@ server <- function(input, output, session) {
   # Set session to auto reconnect to server if connection is lost
   session$allowReconnect("force")
 
-  callModule(routerMOD, "router", query = query) # working
+  routerMOD("router", query = query) # updated
 }
 
 # Run the app
