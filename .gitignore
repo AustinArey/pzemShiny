@@ -1,2 +1,5 @@
 myConfig.R
 rsconnect/
+.Rproj.user/
+.RData
+.Rhistory
