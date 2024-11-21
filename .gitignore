@@ -3,3 +3,7 @@ rsconnect/
 .Rproj.user/
 .RData
 .Rhistory
+
+# renv files
+renv/library/
+renv/staging/
