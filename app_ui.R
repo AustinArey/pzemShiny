@@ -1,8 +1,3 @@
-app_theme <- bs_theme(
-  version = 5,
-  font_scale = 0.75 # 1 #0.75
-)
-
 # Define Group UI
 group_analysis_ui <- function(id) {
   ns <- NS(id)
