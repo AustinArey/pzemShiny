@@ -28,7 +28,7 @@ meter_charting_ui <- function(id) {
                 class = "dropdowns-container",
                 uiOutput(ns("table_ui")), # Reactive table dropdown
                 selectInput(
-                    ns("data"), "Data",
+                    ns("selected_column"), "Data",
                     c("power", "current", "voltage", "energy")
                 )
             ),
@@ -54,38 +54,67 @@ meter_charting_mod <- function(id, conn, tables, group, date_range) {
 
         # Table dropdown UI
         output$table_ui <- renderUI({
-            selectInput(ns("table"), "Table", tables[[selected_group()]][[1]])
+            selectInput(ns("table"), "Table", tables[[selected_group()]])
         })
 
         # Query to retrieve timeseries data
-        data_query <- reactive({
-            req(input$table != "")
-            query <- paste0(
-                "SELECT date_time, ", input$data, " FROM ",
-                input$table, " WHERE date_time BETWEEN '",
+        time_series_query <- reactive({
+            paste0(
+                "SELECT date_time, ", input[[ns("selected_column")]], " FROM ",
+                input[[ns("table")]], " WHERE date_time BETWEEN '",
                 selected_date_range()[1], "' AND '", lubridate::as_date(selected_date_range()[2]) + 1, "'"
             )
-            print(query)
-            data <- dbGetQuery(conn, query)
-            if (nrow(data) == 0) {
-                return(data.frame(date_time = NA, value = NA))
+        })
+
+        # Data from query
+        time_series_data <- reactive({
+            req(input[[ns("table")]] != "")
+            print(time_series_query())
+            tryCatch(
+                {
+                    data <- dbGetQuery(conn, time_series_query())
+                    if (nrow(data) == 0) {
+                        return(data.frame(date_time = NA, value = NA))
+                    }
+                    data
+                },
+                error = function(e) {
+                    warning(e)
+                    return(NULL)
+                }
+            )
+        })
+
+        # Render UI for plot or error message
+        output$plot_ui <- renderUI({
+            req(time_series_data())
+            data <- time_series_data()
+            if (is.null(data) || nrow(data) == 0 || is.na(data$date_time[1])) {
+                div(
+                    style = "color: red; font-size: 20px; text-align: center; margin-top: 20px;",
+                    if (!is.null(data$error)) {
+                        paste("Error: ", data$error)
+                    } else {
+                        "No data found for the selected date range"
+                    }
+                )
+            } else {
+                plotlyOutput(ns("plot")) %>% withSpinner(color = "#0dc5c1")
             }
-            data
         })
 
         # Plotting timeseries data
         output$plot <- renderPlotly({
-            # req(nrow(data_query) > 0 )
-            p <- plot_ly(data_query(),
-                x = ~date_time, y = ~ get(input$data),
-                type = "scatter", mode = "lines", name = input$data
+            data <- time_series_data()
+            req(!is.null(data) && nrow(data) > 0)
+            plot_ly(data,
+                x = ~date_time, y = ~ get(input[[ns("selected_column")]]),
+                type = "scatter", mode = "lines", name = input[[ns("selected_column")]]
             ) %>%
                 layout(
-                    title = paste("Time Series of", input$data, "for Table:", input$table),
+                    title = paste("Time Series of", input[[ns("selected_column")]], "for Table:", input[[ns("table")]]),
                     xaxis = list(title = "Datetime"),
-                    yaxis = list(title = input$data)
-                ) %>%
-                layout(
+                    yaxis = list(title = input[[ns("selected_column")]]),
                     plot_bgcolor = "rgba(0, 0, 0, 0)",
                     paper_bgcolor = "rgba(0, 0, 0, 0)"
                 ) %>%
