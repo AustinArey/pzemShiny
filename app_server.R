@@ -63,62 +63,74 @@ root_mod <- function(id) {
       paste0("$", cost_per_kwh())
     })
 
-    meter_list <- reactive({
+    meter_df <- reactive({
       # req(length(tables[input$group][[1]]) > 0)
-      days <- c()
-      meas <- c()
-      cost <- c()
-      for (t in tables[input$group][[1]]) {
-        # print max energy and final query strings
-        print(max_query(t, input$date_range[1], input$date_range[2]))
-        print(final_query(t, input$date_range[2]))
 
-        initial <- dbGetQuery(conn, initial_query(t, input$date_range[1]))
-        max <- dbGetQuery(conn, max_query(t, input$date_range[1], input$date_range[2]))
-        final <- dbGetQuery(conn, final_query(t, input$date_range[2]))
+      # Helper function to calculate measurements
+      calculate_measurements <- function(table, date_range) {
+        initial <- dbGetQuery(conn, initial_query(table, date_range[1]))
+        max <- dbGetQuery(conn, max_query(table, date_range[1], date_range[2]))
+        final <- dbGetQuery(conn, final_query(table, date_range[2]))
+
         if (final$energy < max$`MAX(energy)`) {
-          meas <- c(meas, max$`MAX(energy)` - initial$energy + final$energy)
+          meas <- max$`MAX(energy)` - initial$energy + final$energy
         } else {
-          meas <- c(meas, final$energy - initial$energy)
+          meas <- final$energy - initial$energy
         }
-        days <- c(days, as.numeric(difftime(as.POSIXct(final$date_time), as.POSIXct(initial$date_time), units = "days")))
+
+        days <- as.numeric(difftime(as.POSIXct(final$date_time), as.POSIXct(initial$date_time), units = "days"))
+
+        list(meas = meas, days = days)
       }
+
+      # Calculate measurements for each table
+      measurements <- lapply(tables[[input$group]], calculate_measurements, date_range = input$date_range)
+
+      # Extract measurements and days
+      meas <- sapply(measurements, `[[`, "meas")
+      days <- sapply(measurements, `[[`, "days")
+
+      # Create data frame
       data.frame(
-        Label = tables[input$group],
+        Label = tables[[input$group]],
         kWh = meas / 1000,
         "Days Meas" = round(days, 2),
         CostEst = round(meas / 1000 * days_selected() / days * cost_per_kwh(), 2)
       )
     })
 
-    live_list <- reactive({
+    live_df <- reactive({
       live_timer()
-      req(length(tables[input$group][[1]]) > 0)
-      date_time <- c()
-      voltage <- c()
-      current <- c()
-      power <- c()
-      energy <- c()
-      for (t in tables[input$group][[1]]) {
-        live <- dbGetQuery(conn, live_query(t, Sys.Date()))
-        date_time <- c(date_time, live$date_time)
-        voltage <- c(voltage, live$voltage)
-        current <- c(current, live$current)
-        power <- c(power, live$power)
-        energy <- c(energy, live$energy)
+      req(length(tables[[input$group]]) > 0)
+
+      # Helper function to retrieve live data for a table
+      get_live_table_data <- function(table) {
+        live_table_data <- dbGetQuery(conn, live_query(table, Sys.Date()))
+        list(
+          date_time = live_table_data$date_time,
+          voltage = live_table_data$voltage,
+          current = live_table_data$current,
+          power = live_table_data$power,
+          energy = live_table_data$energy
+        )
       }
+
+      # Retrieve live data for each table
+      live_data_list <- lapply(tables[[input$group]], get_live_table_data)
+
+      # Combine live data into a data frame
       data.frame(
-        Label = tables[input$group],
-        LastMeasurement = date_time,
-        Current = current,
-        Power = power / 1000,
-        Energy = energy / 1000,
-        Voltage = voltage
+        Label = tables[[input$group]],
+        LastMeasurement = unlist(lapply(live_data_list, `[[`, "date_time")),
+        Current = unlist(lapply(live_data_list, `[[`, "current")),
+        Power = unlist(lapply(live_data_list, `[[`, "power")) / 1000,
+        Energy = unlist(lapply(live_data_list, `[[`, "energy")) / 1000,
+        Voltage = unlist(lapply(live_data_list, `[[`, "voltage"))
       )
     })
 
     total_energy <- reactive({
-      sum(unlist(meter_list()["kWh"]))
+      sum(unlist(meter_df()["kWh"]))
     })
     days_selected <- reactive({
       1 + lubridate::as_date(input$date_range[2]) - lubridate::as_date(input$date_range[1])
@@ -127,17 +139,20 @@ root_mod <- function(id) {
     output$total_energy <- renderText({
       paste0(total_energy(), "kWh")
     })
-    output$days_selected <- renderText({
-      days_selected()
+    output$group_table_label <- renderText({
+      paste(
+        "Estimated Cost Breakdown (based on # days selected:",
+        days_selected(),
+        ")"
+      )
     })
-
-    group_table <- function(group, table_num) {
-      tables[paste0("pzem", group)][[1]][table_num]
-    }
+    output$est_bill_total <- renderText({
+      paste0("$", total_energy() * cost_per_kwh())
+    })
 
     # Group DT
     output$tbl <- renderDT(
-      meter_list(),
+      meter_df(),
       options = list(
         paging = FALSE, # TRUE,
         searching = FALSE,
@@ -151,7 +166,7 @@ root_mod <- function(id) {
 
     # Live DT
     output$live_table <- renderDT(
-      live_list(),
+      live_df(),
       options = list(
         paging = FALSE, # TRUE,
         searching = FALSE,
@@ -166,7 +181,7 @@ root_mod <- function(id) {
     ## METER ##
     # Table dropdown UI
     output$table_ui <- renderUI({
-      select_input(ns("table"), "Table", tables[input$group][[1]])
+      selectInput(ns("table"), "Table", tables[input$group][[1]])
     })
 
     # Query to retrieve timeseries data

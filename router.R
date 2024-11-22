@@ -23,15 +23,15 @@ router_mod <- function(id, query) {
       # if(length(query())>0){
       #   if(query()$group == 'terry'){
       #     print("show terry")
-      #     output$ui <- renderUI({  Meter_UI(session$ns('terry')) })
+      #     output$ui <- renderUI({  meter_charting_ui(session$ns('terry')) })
       #     callModule(Meter_MOD,'terry')
       #   }else if(query()$group == '580'){
       #     print("show 580")
-      #     output$ui <- renderUI({  Meter_UI(session$ns('580')) })
+      #     output$ui <- renderUI({  meter_charting_ui(session$ns('580')) })
       #     callModule(Meter_MOD,'582')
       #   }else if(query()$group == 'b6'){
       #     print("show 582")
-      #     output$ui <- renderUI({  Meter_UI(session$ns('582')) })
+      #     output$ui <- renderUI({  meter_charting_ui(session$ns('582')) })
       #     callModule(Meter_MOD,'582')
       #   }
       # }else{
@@ -40,7 +40,7 @@ router_mod <- function(id, query) {
         root_ui(session$ns("root"))
       })
       root_mod("root")
-      # output$ui <- renderUI({  Group_UI(session$ns('root')) })
+      # output$ui <- renderUI({  group_analysis_ui(session$ns('root')) })
       # callModule(Group_MOD,'root')
       # }
     })
