@@ -1,25 +1,25 @@
-apptheme <- bs_theme(
+app_theme <- bs_theme(
   version = 5,
   font_scale = 0.75 # 1 #0.75
 )
 
 # Define Group UI
-Group_UI <- function(id) {
+group_ui <- function(id) {
   ns <- NS(id)
   div(
     id = "group",
     fluidRow(
       column(2, h4("Group kWh measured:")),
-      column(2, textOutput(ns("totalEnergy"))),
+      column(2, textOutput(ns("total_energy"))),
     ), fluidRow(
       column(2, h4("Number of days selected:")),
-      column(2, textOutput(ns("daysSelected"))),
+      column(2, textOutput(ns("days_selected"))),
     ), fluidRow(
-      column(2, numericInput(ns("billCost"), label = "Bill Total $", value = 130.86)),
-      column(2, numericInput(ns("billKwh"), label = "Bill Total kWh", value = 396)),
+      column(2, numericInput(ns("bill_cost"), label = "Bill Total $", value = 130.86)),
+      column(2, numericInput(ns("bill_kwh"), label = "Bill Total kWh", value = 396)),
     ), fluidRow(
       column(2, h4("= $/Kwh")),
-      column(2, textOutput(ns("costPerKwh"))),
+      column(2, textOutput(ns("cost_per_kwh"))),
     ), fluidRow(
       column(6, div(
         id = "datatable", class = "table",
@@ -31,13 +31,13 @@ Group_UI <- function(id) {
 }
 
 # Live UI #
-LiveStats_UI <- function(id) {
+live_stats_ui <- function(id) {
   ns <- NS(id)
   div(
     id = "live",
     fluidRow(
       column(6, div(
-        id = "datatable", class = "table", DTOutput(ns("liveTable")),
+        id = "datatable", class = "table", DTOutput(ns("live_table")),
         style = "font-size:100%;color:white;background-color:lightgrey;"
       ))
     )
@@ -45,7 +45,7 @@ LiveStats_UI <- function(id) {
 }
 
 # Define Meter UI
-Meter_UI <- function(id) {
+meter_ui <- function(id) {
   ns <- NS(id)
   sidebarLayout(
     sidebarPanel(
@@ -72,10 +72,10 @@ root_ui <- function(id) {
       column(3, dateRangeInput(ns("date_range"), "Date Range", start = Sys.Date() - 30, end = Sys.Date())),
     ),
     tabsetPanel(
-      id = ns("tabsmain"),
-      tabPanel("Group Analysis", Group_UI(id)),
-      tabPanel("Live Stats", LiveStats_UI(id)),
-      tabPanel("Meter Charting", Meter_UI(id)),
+      id = ns("tabs_main"),
+      tabPanel("Group Analysis", group_ui(id)),
+      tabPanel("Live Stats", live_stats_ui(id)),
+      tabPanel("Meter Charting", meter_ui(id)),
     ),
   ) # div root
 }

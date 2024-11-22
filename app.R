@@ -22,7 +22,7 @@ ui <- function(req) {
     # Custom CSS
     tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css")),
     shinyjs::useShinyjs(),
-    routerUI("router")
+    router_ui("router")
   )
 }
 # Wrap your UI with secure_app to use authentication
@@ -41,7 +41,7 @@ server <- function(input, output, session) {
   # Set session to auto reconnect to server if connection is lost
   session$allowReconnect("force")
 
-  routerMOD("router", query = query) # updated
+  router_mod("router", query = query) # updated
 }
 
 # Run the app

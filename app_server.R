@@ -1,12 +1,12 @@
 # Breakout MODs
 
 # Root MOD
-root_MOD <- function(id) {
+root_mod <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
     observe({
-      print("root_MOD")
+      print("root_mod")
       print(session$ns(""))
       # Extract IP address
       ip <- session$clientData$url_hostname
@@ -16,8 +16,7 @@ root_MOD <- function(id) {
     })
 
     # Set base timer interval for dashboard refresh interval
-    timer <- reactiveTimer(900000) # 900 sec = 15 min
-    livetimer <- reactiveTimer(10000) # 10 sec
+    live_timer <- reactiveTimer(10000) # 10 sec
 
     # MySQL connection
     conn <- dbConnect(MySQL(),
@@ -28,37 +27,40 @@ root_MOD <- function(id) {
     )
 
     ## GROUP ##
-    initialQuery <- function(table, initialdt) {
+    initial_query <- function(table, initial_dt) {
       paste0(
         "SELECT energy, date_time FROM ", table, " WHERE date_time > '",
-        initialdt, "' ORDER BY date_time ASC LIMIT 1"
-      )
-    }
-    finalQuery <- function(table, finaldt) {
-      paste0(
-        "SELECT energy, date_time FROM ", table, " WHERE date_time < '",
-        lubridate::as_date(finaldt) + 1, "' ORDER BY date_time DESC LIMIT 1"
-      )
-    }
-    maxQuery <- function(table, initialdt, finaldt) {
-      paste0(
-        "SELECT MAX(energy) FROM ",
-        table, " WHERE date_time BETWEEN '",
-        initialdt, "' AND '", lubridate::as_date(finaldt) + 1, "'"
-      )
-    }
-    liveQuery <- function(table, finaldt) {
-      paste0(
-        "SELECT date_time, voltage, current, power, energy FROM ", table, " WHERE date_time < '",
-        lubridate::as_date(finaldt) + 1, "' ORDER BY date_time DESC LIMIT 1"
+        initial_dt, "' ORDER BY date_time ASC LIMIT 1"
       )
     }
 
-    costPerKwh <- reactive({
-      round(input$billCost / input$billKwh, 2)
+    final_query <- function(table, final_dt) {
+      paste0(
+        "SELECT energy, date_time FROM ", table, " WHERE date_time < '",
+        lubridate::as_date(final_dt) + 1, "' ORDER BY date_time DESC LIMIT 1"
+      )
+    }
+
+    max_query <- function(table, initial_dt, final_dt) {
+      paste0(
+        "SELECT MAX(energy) FROM ",
+        table, " WHERE date_time BETWEEN '",
+        initial_dt, "' AND '", lubridate::as_date(final_dt) + 1, "'"
+      )
+    }
+
+    live_query <- function(table, final_dt) {
+      paste0(
+        "SELECT date_time, voltage, current, power, energy FROM ", table, " WHERE date_time < '",
+        lubridate::as_date(final_dt) + 1, "' ORDER BY date_time DESC LIMIT 1"
+      )
+    }
+
+    cost_per_kwh <- reactive({
+      round(input$bill_cost / input$bill_kwh, 2)
     })
-    output$costPerKwh <- renderText({
-      paste0("$", costPerKwh())
+    output$cost_per_kwh <- renderText({
+      paste0("$", cost_per_kwh())
     })
 
     meter_list <- reactive({
@@ -67,11 +69,13 @@ root_MOD <- function(id) {
       meas <- c()
       cost <- c()
       for (t in tables[input$group][[1]]) {
-        print(maxQuery(t, input$date_range[1], input$date_range[2]))
-        print(finalQuery(t, input$date_range[2]))
-        initial <- dbGetQuery(conn, initialQuery(t, input$date_range[1]))
-        max <- dbGetQuery(conn, maxQuery(t, input$date_range[1], input$date_range[2]))
-        final <- dbGetQuery(conn, finalQuery(t, input$date_range[2]))
+        # print max energy and final query strings
+        print(max_query(t, input$date_range[1], input$date_range[2]))
+        print(final_query(t, input$date_range[2]))
+
+        initial <- dbGetQuery(conn, initial_query(t, input$date_range[1]))
+        max <- dbGetQuery(conn, max_query(t, input$date_range[1], input$date_range[2]))
+        final <- dbGetQuery(conn, final_query(t, input$date_range[2]))
         if (final$energy < max$`MAX(energy)`) {
           meas <- c(meas, max$`MAX(energy)` - initial$energy + final$energy)
         } else {
@@ -79,16 +83,16 @@ root_MOD <- function(id) {
         }
         days <- c(days, as.numeric(difftime(as.POSIXct(final$date_time), as.POSIXct(initial$date_time), units = "days")))
       }
-      Data_Frame <- data.frame(
+      data.frame(
         Label = tables[input$group],
         kWh = meas / 1000,
         "Days Meas" = round(days, 2),
-        CostEst = round(meas / 1000 * days_selected() / days * costPerKwh(), 2)
+        CostEst = round(meas / 1000 * days_selected() / days * cost_per_kwh(), 2)
       )
     })
 
     live_list <- reactive({
-      livetimer()
+      live_timer()
       req(length(tables[input$group][[1]]) > 0)
       date_time <- c()
       voltage <- c()
@@ -96,14 +100,14 @@ root_MOD <- function(id) {
       power <- c()
       energy <- c()
       for (t in tables[input$group][[1]]) {
-        live <- dbGetQuery(conn, liveQuery(t, Sys.Date()))
+        live <- dbGetQuery(conn, live_query(t, Sys.Date()))
         date_time <- c(date_time, live$date_time)
         voltage <- c(voltage, live$voltage)
         current <- c(current, live$current)
         power <- c(power, live$power)
         energy <- c(energy, live$energy)
       }
-      Data_Frame <- data.frame(
+      data.frame(
         Label = tables[input$group],
         LastMeasurement = date_time,
         Current = current,
@@ -120,14 +124,14 @@ root_MOD <- function(id) {
       1 + lubridate::as_date(input$date_range[2]) - lubridate::as_date(input$date_range[1])
     })
 
-    output$totalEnergy <- renderText({
+    output$total_energy <- renderText({
       paste0(total_energy(), "kWh")
     })
-    output$daysSelected <- renderText({
+    output$days_selected <- renderText({
       days_selected()
     })
 
-    groupTable <- function(group, table_num) {
+    group_table <- function(group, table_num) {
       tables[paste0("pzem", group)][[1]][table_num]
     }
 
@@ -146,7 +150,7 @@ root_MOD <- function(id) {
     )
 
     # Live DT
-    output$liveTable <- renderDT(
+    output$live_table <- renderDT(
       live_list(),
       options = list(
         paging = FALSE, # TRUE,
@@ -162,7 +166,7 @@ root_MOD <- function(id) {
     ## METER ##
     # Table dropdown UI
     output$table_ui <- renderUI({
-      selectInput(ns("table"), "Table", tables[input$group][[1]])
+      select_input(ns("table"), "Table", tables[input$group][[1]])
     })
 
     # Query to retrieve timeseries data
@@ -174,13 +178,13 @@ root_MOD <- function(id) {
         input$date_range[1], "' AND '", lubridate::as_date(input$date_range[2]) + 1, "'"
       )
       print(query)
-      return(dbGetQuery(conn, query))
+      dbGetQuery(conn, query)
     })
 
     # Plotting timeseries data
     output$plot <- renderPlotly({
-      # req(nrow(data_query) > 0 )
-      p <- plot_ly(data_query(),
+      req(nrow(data_query()) > 0)
+      plot_ly(data_query(),
         x = ~date_time, y = ~ get(input$data),
         type = "scatter", mode = "lines", name = input$data
       ) %>%
@@ -191,22 +195,25 @@ root_MOD <- function(id) {
         ) %>%
         layout(
           plot_bgcolor = "rgba(0, 0, 0, 0)",
-          paper_bgcolor = "rgba(0, 0, 0, 0)",
-          fig_bgcolor = "rgba(0, 0, 0, 0)"
+          paper_bgcolor = "rgba(0, 0, 0, 0)"
         ) %>%
         layout(font = list(family = "Roboto, sans-serif", color = "#FFFFFF")) %>%
         layout(yaxis = list(tickcolor = "#FFFFF")) %>%
-        layout(xaxis = list(
-          title = list(text = "Datetime"),
-          type = "date",
-          # tickformat="%Y-%m-%d %H:%M:%S",
-          tickcolor = "#FFFFF",
-          tickangle = -90,
-          font = list(family = "sans serif", size = 8, color = "white"),
-          gridcolor = toRGB("gray50"), gridwidth = 1,
-          linecolor = toRGB("white"),
-          linewidth = 2
-        ))
+        layout(
+          font = list(family = "Roboto, sans-serif", color = "#FFFFFF"),
+          yaxis = list(tickcolor = "#FFFFF"),
+          xaxis = list(
+            title = list(text = "Datetime"),
+            type = "date",
+            # tickformat="%Y-%m-%d %H:%M:%S",
+            tickcolor = "#FFFFF",
+            tickangle = -90,
+            font = list(family = "sans serif", size = 8, color = "white"),
+            gridcolor = toRGB("gray50"), gridwidth = 1,
+            linecolor = toRGB("white"),
+            linewidth = 2
+          )
+        )
     })
 
     # Disconnect from database when app is closed

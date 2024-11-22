@@ -3,14 +3,14 @@
 # This is a work around via renderUI and callModule based on query '?machine=bx'
 ###########
 
-routerUI <- function(id) {
+router_ui <- function(id) {
   ns <- NS(id)
   fluidRow(
     column(12, uiOutput(ns("ui")))
   )
 }
 
-routerMOD <- function(id, query) {
+router_mod <- function(id, query) {
   moduleServer(id, function(input, output, session) {
     observe({
       print("routerMOD")
@@ -39,7 +39,7 @@ routerMOD <- function(id, query) {
       output$ui <- renderUI({
         root_ui(session$ns("root"))
       })
-      root_MOD("root")
+      root_mod("root")
       # output$ui <- renderUI({  Group_UI(session$ns('root')) })
       # callModule(Group_MOD,'root')
       # }
