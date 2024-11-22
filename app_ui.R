@@ -3,22 +3,6 @@ apptheme <- bs_theme(
   font_scale = 0.75 # 1 #0.75
 )
 
-# Apply Plotly Dark Theme for Dashboards
-plotly_dark <- function(p) {
-  a <- list(
-    tickcolor = "#FFFFF"
-  )
-  pal <- c("white", "yellow")
-  p %>%
-    layout(
-      plot_bgcolor = "rgba(0, 0, 0, 0)",
-      paper_bgcolor = "rgba(0, 0, 0, 0)",
-      fig_bgcolor = "rgba(0, 0, 0, 0)"
-    ) %>%
-    layout(font = list(family = "Roboto, sans-serif", color = "#FFFFFF")) %>%
-    layout(xaxis = a, yaxis = a)
-}
-
 # Define Group UI
 Group_UI <- function(id) {
   ns <- NS(id)
@@ -75,7 +59,6 @@ Meter_UI <- function(id) {
   )
 }
 
-
 # function(id) { ns <- NS(id)
 root_ui <- function(id) {
   ns <- NS(id)
@@ -90,17 +73,9 @@ root_ui <- function(id) {
     ),
     tabsetPanel(
       id = ns("tabsmain"),
-      # tabPanel("Run View", runview_ui(id)), #Run View tabsetPanel
-      # tabPanel("Run History", runhist_ui(id)), #Run History tabsetPanel
-      # tabPanel("Terry's Meters",tags$body(a(href="/?group=terry",class="link"))),
       tabPanel("Group Analysis", Group_UI(id)),
       tabPanel("Live Stats", LiveStats_UI(id)),
       tabPanel("Meter Charting", Meter_UI(id)),
     ),
   ) # div root
-}
-
-pressure_UI <- function(id) {
-  ns <- NS(id)
-  uiOutput(ns("charts"))
 }

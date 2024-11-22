@@ -19,25 +19,16 @@ source("myConfig.R")
 ui <- function(req) {
   fluidPage(
     theme = shinytheme("darkly"),
-    # Script
-    # tags$script(HTML()),
     # Custom CSS
     tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css")),
     shinyjs::useShinyjs(),
-    # Page Header
-
-    routerUI("router") # replacing shiny.router working
+    routerUI("router")
   )
 }
-# Wrap your UI with secure_app
+# Wrap your UI with secure_app to use authentication
 # ui <- secure_app(ui)
 
 server <- function(input, output, session) {
-  # check_credentials returns a function to authenticate users
-  # res_auth <- secure_server(
-  #   check_credentials = check_credentials(credentials)
-  # )
-  # in place of shiny.router
   query <- reactive({
     parseQueryString(session$clientData$url_search)
   })
