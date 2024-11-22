@@ -147,7 +147,8 @@ root_mod <- function(id) {
       )
     })
     output$est_bill_total <- renderText({
-      paste0("$", total_energy() * cost_per_kwh())
+      cost_est <- as.numeric(meter_df()[["CostEst"]])
+      paste0("$", sum(cost_est, na.rm = TRUE))
     })
 
     # Group DT
