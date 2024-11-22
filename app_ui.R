@@ -103,36 +103,47 @@ live_stats_ui <- function(id) {
 meter_charting_ui <- function(id) {
   ns <- NS(id)
   fluidPage(
-    div(
-      class = "dropdowns-container",
-      style = "margin-top: 20px;",
-      fluidRow(
-        column(
-          4,
-          uiOutput(ns("table_ui"))
-        ), # tables in database is reactive
-        column(
-          4,
-          selectInput(
-            ns("data"), "Data",
-            c("power", "current", "voltage", "energy")
-          )
-        )
-      )
+    tags$head(
+      tags$style(HTML("
+        .outer-container {
+          max-width: 66%; /* Limit the width to 2/3 of the screen */
+          margin-left: 0; /* Align the container to the left */
+          margin-right: auto; /* Keep content responsive */
+        }
+        .dropdowns-container {
+          display: flex;
+          gap: 20px; /* Add spacing between dropdowns */
+          margin-top: 20px;
+          align-items: center;
+        }
+        .chart-container {
+          margin-top: 30px;
+        }
+      "))
     ),
+    # Outer container wrapping both dropdowns and the chart
     div(
-      class = "chart-container",
-      fluidRow(
-        column(
-          8,
-          plotlyOutput(ns("plot")) %>% withSpinner(color = "#0dc5c1")
+      class = "outer-container",
+      # Dropdowns container
+      div(
+        class = "dropdowns-container",
+        uiOutput(ns("table_ui")), # Reactive table dropdown
+        selectInput(
+          ns("data"), "Data",
+          c("power", "current", "voltage", "energy")
         )
+      ),
+      # Chart container
+      div(
+        class = "chart-container",
+        plotlyOutput(ns("plot")) %>% withSpinner(color = "#0dc5c1")
       )
     )
   )
 }
 
-# function(id) { ns <- NS(id)
+
+
 root_ui <- function(id) {
   ns <- NS(id)
   div(
