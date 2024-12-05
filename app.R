@@ -6,7 +6,6 @@ library(shinyjs)
 library(shinythemes)
 library(shinycssloaders)
 library(DT)
-# library(shinymanager)
 
 source("myConfig.R")
 
@@ -35,11 +34,8 @@ ui <- fluidPage(
       tabPanel("Live Data", live_data_ui("live_data")),
       tabPanel("Meter Charting", meter_charting_ui("meter_charting")),
     ),
-  ) # div root
+  )
 )
-
-# Wrap your UI with secure_app to use authentication
-# ui <- secure_app(ui)
 
 server <- function(input, output, session) {
   # Set session to auto reconnect to server if connection is lost
