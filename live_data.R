@@ -12,10 +12,6 @@ live_data_ui <- function(id) {
 # Live Data Module #
 live_data_mod <- function(id, conn, group) {
     moduleServer(id, function(input, output, session) {
-        # Accessing global `group` reactively
-        selected_group <- reactive({
-            group()
-        })
         # Set base timer interval for live data refresh interval
         live_timer <- reactiveTimer(30000) # 30 sec
 

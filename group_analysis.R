@@ -54,14 +54,6 @@ group_analysis_ui <- function(id) {
 # Define corresponding server module:
 group_analysis_mod <- function(id, conn, tables, group, date_range) {
     moduleServer(id, function(input, output, session) {
-        # Accessing global `group` and `date_range` reactively
-        selected_group <- reactive({
-            group()
-        })
-        selected_date_range <- reactive({
-            date_range()
-        })
-
         initial_query <- function(table, initial_dt) {
             paste0(
                 "SELECT energy, date_time FROM ", table, " WHERE date_time > '",
@@ -87,8 +79,8 @@ group_analysis_mod <- function(id, conn, tables, group, date_range) {
         observe({
             print("group_analysis_mod")
             print(session$ns(""))
-            print(selected_date_range()[1])
-            max <- dbGetQuery(conn, max_query("unitA", selected_date_range()[1], selected_date_range()[2]))
+            print(date_range()[1])
+            max <- dbGetQuery(conn, max_query("unitA", date_range()[1], date_range()[2]))
             print(max)
         })
 

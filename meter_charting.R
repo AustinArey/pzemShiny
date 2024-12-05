@@ -23,17 +23,10 @@ meter_charting_ui <- function(id) {
 meter_charting_mod <- function(id, conn, tables, group, date_range) {
     moduleServer(id, function(input, output, session) {
         ns <- NS(id)
-        # Accessing global `group` and `date_range` reactively
-        selected_group <- reactive({
-            group()
-        })
-        selected_date_range <- reactive({
-            date_range()
-        })
 
         # Table dropdown UI
         output$table_ui <- renderUI({
-            selectInput(ns("table"), "Table", tables[[selected_group()]])
+            selectInput(ns("table"), "Table", tables[[group()]])
         })
 
         # Query to retrieve timeseries data
@@ -42,8 +35,8 @@ meter_charting_mod <- function(id, conn, tables, group, date_range) {
             paste0(
                 "SELECT date_time, ", input$selected_column, " FROM ",
                 input$table, " WHERE date_time BETWEEN '",
-                selected_date_range()[1], "' AND '",
-                lubridate::as_date(selected_date_range()[2]) + 1, "'"
+                date_range()[1], "' AND '",
+                lubridate::as_date(date_range()[2]) + 1, "'"
             )
         })
 
