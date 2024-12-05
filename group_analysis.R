@@ -51,31 +51,79 @@ group_analysis_ui <- function(id) {
     )
 }
 
+# Query Functions
+initial_query <- function(table, initial_dt) {
+    paste0(
+        "SELECT energy, date_time FROM ", table, " WHERE date_time > '",
+        initial_dt, "' ORDER BY date_time ASC LIMIT 1"
+    )
+}
+
+final_query <- function(table, final_dt) {
+    paste0(
+        "SELECT energy, date_time FROM ", table, " WHERE date_time < '",
+        lubridate::as_date(final_dt) + 1, "' ORDER BY date_time DESC LIMIT 1"
+    )
+}
+
+max_query <- function(table, initial_dt, final_dt) {
+    paste0(
+        "SELECT MAX(energy) FROM ",
+        table, " WHERE date_time BETWEEN '",
+        initial_dt, "' AND '", lubridate::as_date(final_dt) + 1, "'"
+    )
+}
+
+# Data Processing Functions
+calc_energy_used <- function(initial_energy, max_energy, final_energy) {
+    if (final_energy < max_energy) {
+        energy_measured <- max_energy - initial_energy + final_energy
+    } else {
+        energy_measured <- final_energy - initial_energy
+    }
+    energy_measured
+}
+
+days_diff_num <- function(date1, date2) {
+    as.numeric(difftime(as.POSIXct(date2), as.POSIXct(date1), units = "days"))
+}
+
+calc_energy_days_measured <- function(conn, table, date_range) {
+    initial <- dbGetQuery(conn, initial_query(table, date_range[1]))
+    max <- dbGetQuery(conn, max_query(table, date_range[1], date_range[2]))
+    final <- dbGetQuery(conn, final_query(table, date_range[2]))
+
+    print(initial)
+    print(max)
+    print(final)
+
+    energy_measured <- calc_energy_used(initial$energy, max$`MAX(energy)`, final$energy)
+
+    days_measured <- days_diff_num(initial$date_time, final$date_time)
+
+    list(table = table, energy_measured = energy_measured, days_measured = days_measured)
+}
+
+create_meter_df <- function(conn, tables, group, date_range, cost_per_kwh, days_selected) {
+    measurements_list <- lapply(tables[[group]], function(table) {
+        calc_energy_days_measured(conn, table, date_range)
+    })
+    # extract vectors from list of lists
+    tables_measured <- sapply(measurements_list, `[[`, "table")
+    energy_measured <- sapply(measurements_list, `[[`, "energy_measured")
+    days_measured <- sapply(measurements_list, `[[`, "days_measured")
+
+    data.frame(
+        Label = tables_measured,
+        kWh = energy_measured / 1000,
+        DaysMeas = round(days_measured, 2),
+        CostEst = round(energy_measured / 1000 * days_selected / days_measured * cost_per_kwh, 2)
+    )
+}
+
 # Define corresponding server module:
 group_analysis_mod <- function(id, conn, tables, group, date_range) {
     moduleServer(id, function(input, output, session) {
-        initial_query <- function(table, initial_dt) {
-            paste0(
-                "SELECT energy, date_time FROM ", table, " WHERE date_time > '",
-                initial_dt, "' ORDER BY date_time ASC LIMIT 1"
-            )
-        }
-
-        final_query <- function(table, final_dt) {
-            paste0(
-                "SELECT energy, date_time FROM ", table, " WHERE date_time < '",
-                lubridate::as_date(final_dt) + 1, "' ORDER BY date_time DESC LIMIT 1"
-            )
-        }
-
-        max_query <- function(table, initial_dt, final_dt) {
-            paste0(
-                "SELECT MAX(energy) FROM ",
-                table, " WHERE date_time BETWEEN '",
-                initial_dt, "' AND '", lubridate::as_date(final_dt) + 1, "'"
-            )
-        }
-
         observe({
             print("group_analysis_mod")
             print(session$ns(""))
@@ -84,44 +132,16 @@ group_analysis_mod <- function(id, conn, tables, group, date_range) {
             print(max)
         })
 
+        cost_per_kwh <- reactive({
+            round(input$bill_cost / input$bill_kwh, 2)
+        })
+
+        days_selected <- reactive({
+            1 + lubridate::as_date(date_range()[2]) - lubridate::as_date(date_range()[1])
+        })
+
         meter_df <- reactive({
-            # req(length(tables[group()][[1]]) > 0)
-
-            # Helper function to calculate measurements
-            calculate_measurements <- function(table, date_range) {
-                initial <- dbGetQuery(conn, initial_query(table, date_range[1]))
-                max <- dbGetQuery(conn, max_query(table, date_range[1], date_range[2]))
-                final <- dbGetQuery(conn, final_query(table, date_range[2]))
-
-                if (nrow(initial) == 0 || nrow(max) == 0 || nrow(final) == 0) {
-                    return(list(energy_measured = NA, days_measured = NA))
-                }
-
-                if (final$energy < max$`MAX(energy)`) {
-                    energy_measured <- max$`MAX(energy)` - initial$energy + final$energy
-                } else {
-                    energy_measured <- final$energy - initial$energy
-                }
-
-                days_measured <- as.numeric(difftime(as.POSIXct(final$date_time), as.POSIXct(initial$date_time), units = "days"))
-
-                list(energy_measured = energy_measured, days_measured = days_measured)
-            }
-
-            # Calculate measurements for each table
-            measurements <- lapply(tables[[group()]], calculate_measurements, date_range = date_range())
-
-            # Extract measurements and days
-            energy_measured <- sapply(measurements, `[[`, "energy_measured")
-            days_measured <- sapply(measurements, `[[`, "days_measured")
-
-            # Create data frame
-            data.frame(
-                Label = tables[[group()]],
-                kWh = energy_measured / 1000,
-                "Days Meas" = round(days_measured, 2),
-                CostEst = round(energy_measured / 1000 * days_selected() / days_measured * cost_per_kwh(), 2)
-            )
+            create_meter_df(conn, tables, group(), date_range(), cost_per_kwh(), days_selected())
         })
 
         cost_per_kwh <- reactive({
