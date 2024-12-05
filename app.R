@@ -13,6 +13,13 @@ source("group_analysis.R")
 source("live_data.R")
 source("meter_charting.R")
 
+# Read version number from DESCRIPTION file
+read_version <- function() {
+  desc <- read.dcf("DESCRIPTION")
+  version <- desc[1, "Version"]
+  return(version)
+}
+
 # Main User Interface
 ui <- fluidPage(
   theme = shinytheme("darkly"),
@@ -22,7 +29,8 @@ ui <- fluidPage(
   div(
     id = "main", class = "main",
     fluidRow(
-      column(6, h3("Electrical Meter Shiny App v0.1"))
+      column(6, h3("Electrical Meter Shiny App")),
+      column(6, div(style = "text-align: right;", paste("Version:", read_version())))
     ),
     fluidRow(
       column(3, selectInput("group", "Group", names(tables))),

@@ -1,0 +1,6 @@
+Type: ShinyApp
+Title: My Shiny Application
+Version: 0.2.1
+Author: Austin Arey
+Maintainer: Austin Arey a.arey89@gmail.com
+Description: Display and analyze data from the PZEM 004T energy monitor written to mySQL using Python on Raspberry Pi.
