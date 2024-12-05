@@ -94,33 +94,33 @@ group_analysis_mod <- function(id, conn, tables, group, date_range) {
                 final <- dbGetQuery(conn, final_query(table, date_range[2]))
 
                 if (nrow(initial) == 0 || nrow(max) == 0 || nrow(final) == 0) {
-                    return(list(meas = NA, days = NA))
+                    return(list(energy_measured = NA, days_measured = NA))
                 }
 
                 if (final$energy < max$`MAX(energy)`) {
-                    meas <- max$`MAX(energy)` - initial$energy + final$energy
+                    energy_measured <- max$`MAX(energy)` - initial$energy + final$energy
                 } else {
-                    meas <- final$energy - initial$energy
+                    energy_measured <- final$energy - initial$energy
                 }
 
-                days <- as.numeric(difftime(as.POSIXct(final$date_time), as.POSIXct(initial$date_time), units = "days"))
+                days_measured <- as.numeric(difftime(as.POSIXct(final$date_time), as.POSIXct(initial$date_time), units = "days"))
 
-                list(meas = meas, days = days)
+                list(energy_measured = energy_measured, days_measured = days_measured)
             }
 
             # Calculate measurements for each table
             measurements <- lapply(tables[[group()]], calculate_measurements, date_range = date_range())
 
             # Extract measurements and days
-            meas <- sapply(measurements, `[[`, "meas")
-            days <- sapply(measurements, `[[`, "days")
+            energy_measured <- sapply(measurements, `[[`, "energy_measured")
+            days_measured <- sapply(measurements, `[[`, "days_measured")
 
             # Create data frame
             data.frame(
                 Label = tables[[group()]],
-                kWh = meas / 1000,
-                "Days Meas" = round(days, 2),
-                CostEst = round(meas / 1000 * days_selected() / days * cost_per_kwh(), 2)
+                kWh = energy_measured / 1000,
+                "Days Meas" = round(days_measured, 2),
+                CostEst = round(energy_measured / 1000 * days_selected() / days_measured * cost_per_kwh(), 2)
             )
         })
 
