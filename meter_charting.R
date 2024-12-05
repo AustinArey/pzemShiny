@@ -5,13 +5,13 @@ meter_charting_ui <- function(id) {
         tags$head(
             tags$style(HTML("
         .outer-container {
-          max-width: 66%; /* Limit the width to 2/3 of the screen */
-          margin-left: 0; /* Align the container to the left */
-          margin-right: auto; /* Keep content responsive */
+          max-width: 66%;
+          margin-left: 0;
+          margin-right: auto;
         }
         .dropdowns-container {
           display: flex;
-          gap: 20px; /* Add spacing between dropdowns */
+          gap: 20px;
           margin-top: 20px;
           align-items: center;
         }
@@ -20,10 +20,8 @@ meter_charting_ui <- function(id) {
         }
       "))
         ),
-        # Outer container wrapping both dropdowns and the chart
         div(
             class = "outer-container",
-            # Dropdowns container
             div(
                 class = "dropdowns-container",
                 uiOutput(ns("table_ui")), # Reactive table dropdown
@@ -32,7 +30,6 @@ meter_charting_ui <- function(id) {
                     c("power", "current", "voltage", "energy")
                 )
             ),
-            # Chart container
             div(
                 class = "chart-container",
                 plotlyOutput(ns("plot")) %>% withSpinner(color = "#0dc5c1")
@@ -59,16 +56,17 @@ meter_charting_mod <- function(id, conn, tables, group, date_range) {
 
         # Query to retrieve timeseries data
         time_series_query <- reactive({
+            req(input$table != "")
             paste0(
-                "SELECT date_time, ", input[[ns("selected_column")]], " FROM ",
-                input[[ns("table")]], " WHERE date_time BETWEEN '",
-                selected_date_range()[1], "' AND '", lubridate::as_date(selected_date_range()[2]) + 1, "'"
+                "SELECT date_time, ", input$selected_column, " FROM ",
+                input$table, " WHERE date_time BETWEEN '",
+                selected_date_range()[1], "' AND '",
+                lubridate::as_date(selected_date_range()[2]) + 1, "'"
             )
         })
 
         # Data from query
         time_series_data <- reactive({
-            req(input[[ns("table")]] != "")
             print(time_series_query())
             tryCatch(
                 {
@@ -108,13 +106,13 @@ meter_charting_mod <- function(id, conn, tables, group, date_range) {
             data <- time_series_data()
             req(!is.null(data) && nrow(data) > 0)
             plot_ly(data,
-                x = ~date_time, y = ~ get(input[[ns("selected_column")]]),
-                type = "scatter", mode = "lines", name = input[[ns("selected_column")]]
+                x = ~date_time, y = ~ get(input$selected_column),
+                type = "scatter", mode = "lines", name = input$selected_column
             ) %>%
                 layout(
-                    title = paste("Time Series of", input[[ns("selected_column")]], "for Table:", input[[ns("table")]]),
+                    title = paste("Time Series of", input$selected_column, "for Table:", input[[ns("table")]]),
                     xaxis = list(title = "Datetime"),
-                    yaxis = list(title = input[[ns("selected_column")]]),
+                    yaxis = list(title = input$selected_column),
                     plot_bgcolor = "rgba(0, 0, 0, 0)",
                     paper_bgcolor = "rgba(0, 0, 0, 0)"
                 ) %>%
