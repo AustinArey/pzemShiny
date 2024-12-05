@@ -1,13 +1,10 @@
 # Live Data UI #
 live_data_ui <- function(id) {
     ns <- NS(id)
-    div(
-        id = "live",
-        fluidRow(
-            column(6, div(
-                id = "datatable", class = "table", DTOutput(ns("live_table")),
-                style = "font-size:100%;color:white;background-color:lightgrey;"
-            ))
+    tagList(
+        div(
+            class = "table-container",
+            DTOutput(ns("live_table")) %>% withSpinner(color = "#0dc5c1")
         )
     )
 }
@@ -20,7 +17,7 @@ live_data_mod <- function(id, conn, group) {
             group()
         })
         # Set base timer interval for live data refresh interval
-        live_timer <- reactiveTimer(10000) # 10 sec
+        live_timer <- reactiveTimer(30000) # 30 sec
 
         live_query <- function(table, final_dt) {
             paste0(

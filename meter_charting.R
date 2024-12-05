@@ -2,24 +2,6 @@
 meter_charting_ui <- function(id) {
     ns <- NS(id)
     fluidPage(
-        tags$head(
-            tags$style(HTML("
-        .outer-container {
-          max-width: 66%;
-          margin-left: 0;
-          margin-right: auto;
-        }
-        .dropdowns-container {
-          display: flex;
-          gap: 20px;
-          margin-top: 20px;
-          align-items: center;
-        }
-        .chart-container {
-          margin-top: 30px;
-        }
-      "))
-        ),
         div(
             class = "outer-container",
             div(

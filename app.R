@@ -84,4 +84,4 @@ server <- function(input, output, session) {
 }
 
 # Run the app
-shinyApp(ui = ui, server = server, options = list(host = "0.0.0.0", port = 8000))
+shinyApp(ui = ui, server = server, options = list(host = "0.0.0.0", port = 8000, launch.browser = FALSE))

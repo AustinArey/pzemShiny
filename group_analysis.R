@@ -5,37 +5,6 @@ group_analysis_ui <- function(id) {
     ns <- NS(id)
     div(
         id = "group",
-        tags$head(
-            tags$style(HTML("
-        .group-row {
-          display: flex;
-          align-items: center;
-          margin-bottom: 10px;
-        }
-        .group-row h5, .group-row .shiny-text-output {
-          margin: 0 10px;
-        }
-        .group-row .shiny-input-container {
-          margin: 0 10px;
-        }
-        .group-row .shiny-input-container input {
-          width: 100px;
-        }
-        .group-row .shiny-text-output {
-          min-width: 100px;
-        }
-        .group-label {
-          font-weight: bold;
-          margin-bottom: 10px;
-          margin-top: 20px;
-        }
-        .table-container {
-          width: 100%;
-          max-width: 600px;
-          margin: 0 10px;
-        }
-      "))
-        ),
         div(
             class = "group-container",
             div(
