@@ -85,17 +85,24 @@ calc_energy_used <- function(initial_energy, max_energy, final_energy) {
 }
 
 days_diff_num <- function(date1, date2) {
-    as.numeric(difftime(as.POSIXct(date2), as.POSIXct(date1), units = "days")) + 1
+    # Convert inputs to POSIXct if they are not already
+    date1 <- as.POSIXct(date1)
+    date2 <- as.POSIXct(date2)
+
+    # Check if both inputs are dates (without time)
+    if (all(format(date1, "%H:%M:%S") == "00:00:00") && all(format(date2, "%H:%M:%S") == "00:00:00")) {
+        # If both are dates, include the full 24 hours of the last date
+        date2 <- date2 + 86400 - 1 # Add 23 hours, 59 minutes, and 59 seconds
+    }
+
+    # Calculate the difference in days
+    round(as.numeric(difftime(date2, date1, units = "days")), 2)
 }
 
 calc_energy_days_measured <- function(conn, table, date_range) {
     initial <- dbGetQuery(conn, initial_query(table, date_range[1]))
     max <- dbGetQuery(conn, max_query(table, date_range[1], date_range[2]))
     final <- dbGetQuery(conn, final_query(table, date_range[2]))
-
-    print(initial)
-    print(max)
-    print(final)
 
     energy_measured <- calc_energy_used(initial$energy, max$`MAX(energy)`, final$energy)
 

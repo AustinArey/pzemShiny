@@ -27,45 +27,53 @@ teardown({
 # Print the data in the unitA table
 print(dbGetQuery(conn, "SELECT * FROM unitA"))
 
+## Unit Test for Group Analysis Module ##
 # Unit test for days_diff_num
-test_that("days_diff_num works with dates", {
+test_that("days_diff_num works with dates inclusively", {
     date_range <- c("2023-01-01", "2023-01-10")
     days_selected <- days_diff_num(date_range[1], date_range[2])
     expect_equal(days_selected, 10)
 })
 
+test_that("days_diff_num works with datetimes exclusively", {
+    datetimes_range <- c("2023-01-01 12:00:00", "2023-01-10 18:00:00")
+    days_selected <- days_diff_num(datetimes_range[1], datetimes_range[2])
+    expect_equal(days_selected, 9.25)
+})
+
 # Unit tests for calc_energy_used
-test_that("calc_energy_used works with monotonic data", {
-    date_range <- c("2022-12-31", "2023-02-01")
+test_that("calc_energy_used when final_energy < max_energy", {
+    initial_energy <- 100
+    max_energy <- 200
+    final_energy <- 50
 
-    final_query_str <- final_query("unitA", date_range[2])
-    final <- dbGetQuery(conn, final_query_str)
+    result <- calc_energy_used(initial_energy, max_energy, final_energy)
+    expect_equal(result, 150)
+})
 
-    initial_query_str <- initial_query("unitA", date_range[1])
-    initial <- dbGetQuery(conn, initial_query_str)
+test_that("calc_energy_used when final_energy >= max_energy", {
+    initial_energy <- 100
+    max_energy <- 300
+    final_energy <- 300
 
-    max_query_str <- max_query("unitA", date_range[1], date_range[2])
-    max <- dbGetQuery(conn, max_query_str)
-
-    result <- calc_energy_used(initial$energy, max$`MAX(energy)`, final$energy)
+    result <- calc_energy_used(initial_energy, max_energy, final_energy)
     expect_equal(result, 200)
 })
 
-test_that("calc_energy_used works with data that overflowed bufffer", {
-    date_range <- c("2023-01-01", "2023-03-01")
-    days_selected <- days_diff_num(date_range[1], date_range[2])
-    expect_equal(days_selected, 60)
+# Units tests for inital_query, final_query, and max_query results
+test_that("initial_query returns correct result", {
+    result <- dbGetQuery(conn, initial_query("unitA", "2023-01-01"))
+    expect_equal(result$energy, 100)
+})
 
-    initial_query_str <- initial_query("unitA", date_range[1])
-    final_query_str <- final_query("unitA", date_range[2])
-    max_query_str <- max_query("unitA", date_range[1], date_range[2])
+test_that("final_query returns correct result", {
+    result <- dbGetQuery(conn, final_query("unitA", "2023-02-28"))
+    expect_equal(result$energy, 50)
+})
 
-    initial <- dbGetQuery(conn, initial_query_str)
-    final <- dbGetQuery(conn, final_query_str)
-    max <- dbGetQuery(conn, max_query_str)
-
-    result <- calc_energy_used(initial$energy, max$`MAX(energy)`, final$energy)
-    expect_equal(result, 250)
+test_that("max_query returns correct result", {
+    result <- dbGetQuery(conn, max_query("unitA", "2023-01-01", "2023-02-28"))
+    expect_equal(result$`MAX(energy)`, 300)
 })
 
 # Unit tests for calc_energy_days_measured
