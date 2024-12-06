@@ -33,7 +33,7 @@ ui <- fluidPage(
       column(6, div(style = "text-align: right;", paste("Version:", read_version())))
     ),
     fluidRow(
-      column(3, selectInput("group", "Group", names(tables))),
+      column(3, selectInput("selected_group", "Group", names(tables))),
       column(3, dateRangeInput("date_range", "Date Range", start = Sys.Date() - 30, end = Sys.Date())),
     ),
     tabsetPanel(
@@ -74,19 +74,19 @@ server <- function(input, output, session) {
     id = "group_analysis",
     conn = conn,
     tables = tables,
-    group = reactive(input$group), # Wrap as reactive
+    group = reactive(input$selected_group), # Wrap as reactive
     date_range = reactive(input$date_range) # Wrap as reactive
   )
   live_data_mod(
     id = "live_data",
     conn,
-    group = reactive(input$group) # Wrap as reactive
+    group = reactive(input$selected_group) # Wrap as reactive
   )
   meter_charting_mod(
     id = "meter_charting",
     conn = conn,
     tables = tables,
-    group = reactive(input$group), # Wrap as reactive
+    group = reactive(input$selected_group), # Wrap as reactive
     date_range = reactive(input$date_range) # Wrap as reactive
   )
 }
