@@ -4,18 +4,25 @@ library(lubridate)
 
 source("../group_analysis.R")
 
-# Mock database connection
-conn <- dbConnect(RSQLite::SQLite(), ":memory:")
+# Setup and Teardown
+setup({
+    # Mock database connection
+    conn <<- dbConnect(RSQLite::SQLite(), ":memory:")
 
-# Create mock tables and data
-dbWriteTable(conn, "unitA", data.frame(
-    energy = c(100, 200, 300, 0, 50),
-    date_time = c("2023-01-01 00:00:00", "2023-01-15 00:00:00", "2023-02-01 00:00:00", "2023-02-15 00:00:00", "2023-02-28 00:00:00")
-))
+    # Create mock tables and data
+    dbWriteTable(conn, "unitA", data.frame(
+        energy = c(100, 200, 300, 0, 50),
+        date_time = c("2023-01-01 00:00:00", "2023-01-15 00:00:00", "2023-02-01 00:00:00", "2023-02-15 00:00:00", "2023-02-28 00:00:00")
+    ))
 
-tables <- list(
-    "Group 1" = c("unitA")
-)
+    tables <<- list(
+        "Group 1" = c("unitA")
+    )
+})
+
+teardown({
+    dbDisconnect(conn)
+})
 
 # Print the data in the unitA table
 print(dbGetQuery(conn, "SELECT * FROM unitA"))
@@ -114,5 +121,3 @@ test_that("create_meter_df works correctly", {
     expect_equal(result$DaysMeas, expected_days_measured)
     expect_equal(result$CostEst, round(expected_kwh * cost_per_kwh * days_selected / result$DaysMeas, 2))
 })
-
-dbDisconnect(conn)
