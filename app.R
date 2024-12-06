@@ -2,7 +2,6 @@ library(shiny)
 library(plotly)
 library(RMySQL)
 library(lubridate)
-library(shinyjs)
 library(shinythemes)
 library(shinycssloaders)
 library(DT)
@@ -25,7 +24,6 @@ ui <- fluidPage(
   theme = shinytheme("darkly"),
   # Custom CSS
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "dashboard.css")),
-  shinyjs::useShinyjs(),
   div(
     id = "main", class = "main",
     fluidRow(
