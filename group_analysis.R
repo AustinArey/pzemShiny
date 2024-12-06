@@ -85,7 +85,7 @@ calc_energy_used <- function(initial_energy, max_energy, final_energy) {
 }
 
 days_diff_num <- function(date1, date2) {
-    as.numeric(difftime(as.POSIXct(date2), as.POSIXct(date1), units = "days"))
+    as.numeric(difftime(as.POSIXct(date2), as.POSIXct(date1), units = "days")) + 1
 }
 
 calc_energy_days_measured <- function(conn, table, date_range) {
@@ -99,7 +99,7 @@ calc_energy_days_measured <- function(conn, table, date_range) {
 
     energy_measured <- calc_energy_used(initial$energy, max$`MAX(energy)`, final$energy)
 
-    days_measured <- days_diff_num(initial$date_time, final$date_time)
+    days_measured <- days_diff_num(initial$date_time, final$date_time) # exclusive
 
     list(table = table, energy_measured = energy_measured, days_measured = days_measured)
 }
