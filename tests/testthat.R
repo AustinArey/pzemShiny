@@ -21,7 +21,7 @@ tables <- list(
 print(dbGetQuery(conn, "SELECT * FROM unitA"))
 
 # Unit tests for calc_energy_used
-test_that("calc_energy_used works correctly", {
+test_that("calc_energy_used works with monotonic data", {
     date_range <- c("2022-12-31", "2023-02-01")
 
     final_query_str <- final_query("unitA", date_range[2])
@@ -37,8 +37,25 @@ test_that("calc_energy_used works correctly", {
     expect_equal(result, 200)
 })
 
+test_that("calc_energy_used works with data that overflowed bufffer", {
+    date_range <- c("2023-01-01", "2023-03-01")
+    days_selected <- days_diff_num(date_range[1], date_range[2])
+    expect_equal(days_selected, 59)
+
+    initial_query_str <- initial_query("unitA", date_range[1])
+    final_query_str <- final_query("unitA", date_range[2])
+    max_query_str <- max_query("unitA", date_range[1], date_range[2])
+
+    initial <- dbGetQuery(conn, initial_query_str)
+    final <- dbGetQuery(conn, final_query_str)
+    max <- dbGetQuery(conn, max_query_str)
+
+    result <- calc_energy_used(initial$energy, max$`MAX(energy)`, final$energy)
+    expect_equal(result, 250)
+})
+
 # Unit tests for calc_energy_days_measured
-test_that("calc_energy_days_measured works monotonic data", {
+test_that("calc_energy_days_measured works with monotonic data", {
     date_range <- c("2023-01-01", "2023-02-01")
     days_selected <- days_diff_num(date_range[1], date_range[2])
 
@@ -56,7 +73,7 @@ test_that("calc_energy_days_measured works monotonic data", {
     expect_equal(result$days_measured, 31)
 })
 
-test_that("calc_energy_days_measured works data that overflowed bufffer", {
+test_that("calc_energy_days_measured works with data that overflowed bufffer", {
     date_range <- c("2023-01-01", "2023-03-01")
     days_selected <- days_diff_num(date_range[1], date_range[2])
     expect_equal(days_selected, 59)
