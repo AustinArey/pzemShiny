@@ -100,16 +100,34 @@ days_diff_num <- function(date1, date2) {
 }
 
 calc_energy_days_measured <- function(conn, table, date_range) {
-    initial <- dbGetQuery(conn, initial_query(table, date_range[1]))
-    max <- dbGetQuery(conn, max_query(table, date_range[1], date_range[2]))
-    final <- dbGetQuery(conn, final_query(table, date_range[2]))
+    # 1. Pull all readings in range, ordered
+    query <- paste0(
+        "SELECT date_time, energy FROM ", table,
+        " WHERE date_time BETWEEN '", date_range[1],
+        "' AND '", lubridate::as_date(date_range[2]) + 1, "'",
+        " ORDER BY date_time ASC"
+    )
+    df <- dbGetQuery(conn, query)
 
-    energy_measured <- calc_energy_used(initial$energy, max$`MAX(energy)`, final$energy)
+    if (nrow(df) < 2) {
+        return(list(table = table, energy_measured = 0, days_measured = 0))
+    }
 
-    days_measured <- days_diff_num(initial$date_time, final$date_time) # exclusive
+    # 2. Calculate deltas
+    deltas <- diff(df$energy)
+
+    # 3. Filter out resets (negative deltas)
+    deltas[deltas < 0] <- 0
+
+    # 4. Total energy used
+    energy_measured <- sum(deltas)
+
+    # 5. Days measured = difference between first and last timestamps
+    days_measured <- days_diff_num(df$date_time[1], df$date_time[nrow(df)])
 
     list(table = table, energy_measured = energy_measured, days_measured = days_measured)
 }
+
 
 create_meter_df <- function(conn, tables, group, date_range, cost_per_kwh, days_selected) {
     measurements_list <- lapply(tables[[group]], function(table) {

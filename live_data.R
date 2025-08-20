@@ -32,17 +32,17 @@ live_data_mod <- function(id, conn, group) {
                 if (nrow(live_table_data) == 0) {
                     return(list(
                         date_time = NA,
-                        voltage = NA,
-                        current = NA,
-                        power = NA,
+                        # voltage = NA,
+                        # current = NA,
+                        # power = NA,
                         energy = NA
                     ))
                 }
                 list(
                     date_time = live_table_data$date_time,
-                    voltage = live_table_data$voltage,
-                    current = live_table_data$current,
-                    power = live_table_data$power,
+                    # voltage = live_table_data$voltage,
+                    # current = live_table_data$current,
+                    # power = live_table_data$power,
                     energy = live_table_data$energy
                 )
             }

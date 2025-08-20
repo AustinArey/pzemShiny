@@ -9,7 +9,7 @@ meter_charting_ui <- function(id) {
                 uiOutput(ns("table_ui")), # Reactive table dropdown
                 selectInput(
                     ns("selected_column"), "Data",
-                    c("power", "current", "voltage", "energy")
+                    c("energy") # c("power", "current", "voltage", "energy")
                 )
             ),
             div(
@@ -36,7 +36,8 @@ meter_charting_mod <- function(id, conn, tables, group, date_range) {
                 "SELECT date_time, ", input$selected_column, " FROM ",
                 input$table, " WHERE date_time BETWEEN '",
                 date_range()[1], "' AND '",
-                lubridate::as_date(date_range()[2]) + 1, "'"
+                lubridate::as_date(date_range()[2]) + 1, "'",
+                " ORDER BY date_time"
             )
         })
 
